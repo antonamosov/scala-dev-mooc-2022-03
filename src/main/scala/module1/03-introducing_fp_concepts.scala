@@ -220,6 +220,21 @@ object hof{
         case Option.Some(v) => f(v)
         case Option.None => Option.None
       }
+
+      def printIfAny(): Unit = this match {
+        case Option.Some(v) => print(v)
+        case Option.None => ()
+      }
+
+      def zip[B](that: Option[B]): Option[(T, B)] = this match {
+        case Option.Some(v) => Option(v, that.get)
+        case Option.None => throw new Exception("Get on empty Option")
+      }
+
+      def filter(f: T => Boolean): Option[T] = this match {
+        case Option.Some(v) if f(v) => Option(v)
+        case Option.None => Option.None
+      }
    }
 
    object Option{
@@ -260,10 +275,44 @@ object hof{
     */
 
     sealed trait List[+T]{
-     def ::[A >: T](elem: A): List[A] = ???
+     def ::[A >: T](elem: A): List[A] = this match {
+       case List.::(_, tail) => tail.::(elem)
+       case List.Nil => List.::(elem, List.Nil)
+     }
+
+     def mkString(delimiter: String): String = this match {
+       case List.::(head, tail) =>
+         if (tail.mkString(delimiter) == "") head.toString
+         else tail.mkString(delimiter) + delimiter + head.toString
+       case List.Nil => ""
+     }
+
+     def reverse(): List[T] = this match {
+       case List.::(head, tail) => tail.reverse().::(head)
+       case List.Nil => List.Nil
+     }
+
+     def map[A >: T](f: T => A): List[A] = this match {
+       case List.::(head, tail) => List.::(f(head), tail.map(f))
+       case List.Nil => List.Nil
+     }
+
+     def filter(f: T => Boolean): List[T] = this match {
+       case List.::(head, tail) => if (f(head)) tail else tail.::(head)
+       case List.Nil => List.Nil
+     }
    }
 
    object List{
+     def apply[A](args: A*): List[A] = {
+       val head = args.head
+       var l = List.::(head, List.Nil)
+       for (elem <- args.tail) {
+         l = List.::(elem, l)
+       }
+       l
+     }
+
      case class ::[A](head: A, tail: List[A]) extends List[A]
      case object Nil extends List[Nothing]
    }
@@ -308,11 +357,14 @@ object hof{
       * где каждый элемент будет увеличен на 1
       */
 
+    val incList: List[Int] => List[Int] = l => l.map(el => el + 1)
 
     /**
       *
       * Написать функцию shoutString котрая будет принимать список String и возвращать список,
       * где к каждому элементу будет добавлен префикс в виде '!'
       */
+
+    val shoutString: List[String] => List[String] = l => l.map(el => '!' + el)
 
  }

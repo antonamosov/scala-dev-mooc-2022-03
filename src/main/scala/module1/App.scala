@@ -1,27 +1,25 @@
 package module1
 
+
+
+import module2.implicits.{implicit_conversions, implicit_scopes}
+
+import java.util.concurrent.Callable
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
+
 object App {
   def main(args: Array[String]): Unit = {
 
-//    //val two = (x: Int) => { return x; 2 }
-//    def sumItUp: Int = {
-//      def one(x: Int): Int = { return x; 1 }
-//      def two(x: Int): Int = { return x; 2 }
-//      1 + one(2) + two(11)
-//    }
-//
-//    println(sumItUp)
-//
-//    println("Hello world")
 
-    def doomy(a: String): Unit = {
-      Thread.sleep(1000)
-      println(a)
-    }
+    println(s"Hello from ${Thread.currentThread().getName}")
 
-    val r = hof.logRunningTime(doomy)
+    implicit_scopes.result
 
-    r("Hello")
-    //println(hof.logRunningTime(doomy()))
+    // implicit_conversions
+
+
   }
+
+
 }

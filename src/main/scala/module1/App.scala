@@ -23,5 +23,15 @@ object App {
 
     r("Hello")
     //println(hof.logRunningTime(doomy()))
+
+    val a = list.List(1, 2, 3)
+    val aa = list.List("1", "2", "3")
+    val b = list.incList(a)
+    val c = b.mkString(", ")
+    val d = list.shoutString(aa)
+
+    println(c)
+    println(a.mkString(", "))
+    println(d.mkString(", "))
   }
 }

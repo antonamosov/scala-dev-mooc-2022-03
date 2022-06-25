@@ -1,4 +1,4 @@
-package module1
+    package module1
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -227,8 +227,9 @@ object hof{
       }
 
       def zip[B](that: Option[B]): Option[(T, B)] = this match {
-        case Option.Some(v) => Option(v, that.get)
-        case Option.None => throw new Exception("Get on empty Option")
+        case Option.Some(v) if ! that.isEmpty => Option(v, that.get)
+        case Option.Some(v) => Option.None
+        case Option.None => Option.None
       }
 
       def filter(f: T => Boolean): Option[T] = this match {
@@ -281,9 +282,8 @@ object hof{
      }
 
      def mkString(delimiter: String): String = this match {
-       case List.::(head, tail) =>
-         if (tail.mkString(delimiter) == "") head.toString
-         else tail.mkString(delimiter) + delimiter + head.toString
+       case List.::(head, tail) if tail.mkString(delimiter) == "" => head.toString
+       case List.::(head, tail) => tail.mkString(delimiter) + delimiter + head.toString
        case List.Nil => ""
      }
 
@@ -298,7 +298,8 @@ object hof{
      }
 
      def filter(f: T => Boolean): List[T] = this match {
-       case List.::(head, tail) => if (f(head)) tail else tail.::(head)
+       case List.::(head, tail) if f(head) => tail.filter(f).::(head)
+       case List.::(head, tail) if ! f(head) => tail.filter(f)
        case List.Nil => List.Nil
      }
    }

@@ -21,5 +21,8 @@ object App {
     // Invalid(Email invalidName invalid)
     // Invalid(Chain(Email invalid, Name invalid))
 
+    module2.homework_hkt_impllicts.r1
+    module2.homework_hkt_impllicts.r2
+
   }
 }

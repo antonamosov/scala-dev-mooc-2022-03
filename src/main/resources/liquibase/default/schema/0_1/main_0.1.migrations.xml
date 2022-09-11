@@ -43,4 +43,59 @@
               referencedTableName="Address"/>
         </changeSet>
 
+
+
+        <changeSet id="create Users table" author="aamosov">
+            <createTable tableName="User">
+                <column name="id" type="text">
+                    <constraints primaryKey="true" nullable="false"/>
+                </column>
+                <column name="firstName" type="text">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="lastName" type="text">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="age" type="integer">
+                    <constraints nullable="false"/>
+                </column>
+            </createTable>
+        </changeSet>
+
+
+
+        <changeSet id="create PhoneRecord table" author="aamosov">
+            <createTable tableName="Role">
+                <column name="code" type="text">
+                    <constraints primaryKey="true" nullable="false"/>
+                </column>
+                <column name="name" type="text">
+                    <constraints nullable="false"/>
+                </column>
+            </createTable>
+        </changeSet>
+
+
+
+        <changeSet id="create PhoneRecord table" author="aamosov">
+            <createTable tableName="UserToRole">
+                <column name="roleId" type="text">
+                    <constraints nullable="false"/>
+                </column>
+                <column name="userId" type="text">
+                    <constraints nullable="false"/>
+                </column>
+            </createTable>
+            <addForeignKeyConstraint baseColumnNames="roleId"
+                baseTableName="UserToRole"
+                constraintName="fk_UserToRole_roleId_Role_id"
+                referencedColumnNames="id"
+                referencedTableName="Role"/>
+            <addForeignKeyConstraint baseColumnNames="userId"
+                baseTableName="UserToRole"
+                constraintName="fk_UserToRole_userId_User_id"
+                referencedColumnNames="id"
+                referencedTableName="User"/>
+        </changeSet>
+
 </databaseChangeLog>

@@ -53,10 +53,10 @@ object di {
     clock <- ZIO.environment[Clock].map(_.get)
     random <- ZIO.environment[Random].map(_.get)
     userService <- ZIO.environment[UserService]
-    _ <- console.putStrLn("Hello")
+    _ <- console.putStrLn("Hello").orDie
     _ <- clock.sleep(5 seconds)
     i <- random.nextInt
-    _ <- console.putStrLn(i.toString)
+    _ <- console.putStrLn(i.toString).orDie
   } yield ()
 
 

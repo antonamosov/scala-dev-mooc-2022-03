@@ -6,6 +6,7 @@ import zio.console.{Console, putStrLn}
 import zio.duration.durationInt
 import zio.internal.Executor
 
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import scala.language.postfixOps
 
@@ -33,7 +34,7 @@ object zioConcurrency {
      start <- currentTime
      r <- zio
      finish <- currentTime
-     _ <- putStrLn(s"Running time: ${finish - start}")
+     _ <- putStrLn(s"Running time: ${finish - start}").orDie
    } yield r
 
 
@@ -67,7 +68,7 @@ object zioConcurrency {
   /**
    * Написать эффект котрый получит курсы из обеих локаций
    */
-  lazy val getFrom2Locations: ZIO[Console with Clock, Nothing, (Unit, Unit)] = getExchangeRatesLocation1 <*> getExchangeRatesLocation2
+  lazy val getFrom2Locations: ZIO[Console with Clock, Nothing, (Unit, Unit)] = (getExchangeRatesLocation1 <*> getExchangeRatesLocation2).orDie
 
 
   /**
@@ -75,8 +76,8 @@ object zioConcurrency {
    */
   lazy val getFrom2LocationsInParallel: ZIO[Console with Clock, Nothing, (Unit, Unit)] = for{
     f1 <- getExchangeRatesLocation1.fork
-    r2 <- getExchangeRatesLocation2
-    r1 <- f1.join
+    r2 <- getExchangeRatesLocation2.orDie
+    r1 <- f1.join.orDie
   } yield (r1, r2)
 
 
@@ -120,7 +121,7 @@ object zioConcurrency {
    * 
    */
 
- lazy val hello: ZIO[Console, Nothing, Unit] = (putStrLn("Hello") *> hello)
+ lazy val hello: ZIO[Console, IOException, Nothing] = (putStrLn("Hello") *> hello)
 
  lazy val greeter2 = ???
   

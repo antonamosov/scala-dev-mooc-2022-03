@@ -29,6 +29,7 @@ object UserRepository{
         def findByLastName(lastName: String): QIO[List[User]]
         def list(): QIO[List[User]]
         def userRoles(userId: UserId): QIO[List[Role]]
+        def insertRole(role: Role): QIO[Role]
         def insertRoleToUser(roleCode: RoleCode, userId: UserId): QIO[Unit]
         def listUsersWithRole(roleCode: RoleCode): QIO[List[User]]
         def findRoleByCode(roleCode: RoleCode): QIO[Option[Role]]
@@ -41,68 +42,65 @@ object UserRepository{
         }
 
         val roleSchema = quote {
-          querySchema[Role]("""Role""")
+          querySchema[Role](""""Role"""")
         }
 
         val userToRoleSchema = quote {
-          querySchema[UserToRole]("""UserToRole""")
+          querySchema[UserToRole](""""UserToRole"""")
         }
 
         def findUser(userId: UserId): Result[Option[User]] = dc.run(
           userSchema.filter(u => u.id == lift(userId.id)).take(1)
         ).map(_.headOption)
-        
+
         def createUser(user: User): Result[User] = dc.run(
           userSchema.insert(lift(user))
-        )
-        
+        ).as(user)
+
         def createUsers(users: List[User]): Result[List[User]] = dc.run(
           liftQuery(users).foreach(e => userSchema.insert(e))
-        )
-        
+        ).map(_ => users)
+
         def updateUser(user: User): Result[Unit] = dc.run(
           userSchema.filter(_.id == lift(user.id)).update(lift(user))
-        )
-        
+        ).unit
+
         def deleteUser(user: User): Result[Unit] = dc.run(
-            userSchema.filter(_.id == lift(user.id)).delete
-        )
-        
+          userSchema.filter(_.id == lift(user.id)).delete
+        ).unit
+
         def findByLastName(lastName: String): Result[List[User]] = dc.run(
-            userSchema.filter(u => u.lastName == lift(lastName))
+          userSchema.filter(u => u.lastName == lift(lastName))
         )
-        
+
         def list(): Result[List[User]] = dc.run(userSchema)
-        
+
         def userRoles(userId: UserId): Result[List[Role]] = dc.run(
           for {
             userToRole <- userToRoleSchema
             role <- roleSchema if lift(userId.id) == userToRole.userId
           } yield role
         )
-        
+
+        def insertRole(role: Role): Result[Role] = dc.run(
+          roleSchema.insert(lift(role))
+        ).as(role)
+
         def insertRoleToUser(roleCode: RoleCode, userId: UserId): Result[Unit] = dc.run(
-          userToRoleSchema.insert(UserToRole(lift(roleCode.code), lift(userId.id)))
-        )
-        
+          userToRoleSchema.insert(lift(UserToRole(roleCode.code, userId.id)))
+        ).unit
+
         def listUsersWithRole(roleCode: RoleCode): Result[List[User]] = dc.run(
           for {
-            userToRole <- userToRoleSchema
-            user <- userSchema if lift(roleCode.code) == userToRole.roleId && user.id == userToRole.userId
+            userToRole <- userToRoleSchema if lift(roleCode.code) == userToRole.roleId
+            user <- userSchema.join(userToRole.userId == _.id)
           } yield user
         )
 
-        /*def listUsersWithRole(roleCode: RoleCode): Result[List[User]] = dc.run(
-          for {
-            user <- userSchema
-            role <- roleSchema.join(_.code == userToRole.roleId)
-          } yield (user, role)
-        )*/
-        
         def findRoleByCode(roleCode: RoleCode): Result[Option[Role]] = dc.run(
           roleSchema.filter(r => r.code == lift(roleCode.code)).take(1)
         ).map(_.headOption)
-                
+
     }
 
     val live: ULayer[UserRepository] = ZLayer.succeed(new ServiceImpl)

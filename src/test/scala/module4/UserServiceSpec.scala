@@ -84,7 +84,7 @@ object UserServiceSpec extends DefaultRunnableSpec{
                     _ <- userRepo.createUsers(users.tail)
                     _ <- userService.addUserWithRole(users.head, Manager)
                     result <- userService.listUsersWithRole(Manager)
-                } yield assert(result.length)(equalTo(1)) && assert(result.head.user)(equalTo(users.head)) && 
+                } yield assert(result.length)(equalTo(1)) && assert(result.head.user)(equalTo(users.head)) &&
                     assert(result.head.roles)(equalTo(Set(Role(Manager.code, "Manager"))))
             ) @@ migrate()
         ).provideCustomLayer(zLayer)  

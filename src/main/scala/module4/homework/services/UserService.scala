@@ -32,28 +32,34 @@ object UserService{
 
         def listUsers(): RIO[db.DataSource, List[User]] = userRepo.list()
 
-        def listUsersDTO(): RIO[db.DataSource, List[UserDTO]] = ???
-        
+        def listUsersDTO(): RIO[db.DataSource, List[UserDTO]] = for {
+          users <- userRepo.list()
+          dtos <- ZIO.foreachPar(users) { user => for {
+              roles <- userRepo.userRoles(user.typedId)
+              dto <- ZIO.succeed(UserDTO(user, roles.toSet))
+            } yield dto
+          }
+        } yield dtos
+
         def addUserWithRole(user: User, roleCode: RoleCode): RIO[db.DataSource, UserDTO] = for {
-          user <- userRepo.createUser(user)
-          _ <- userRepo.insertRoleToUser(roleCode, user.typedId)
-          role <- userRepo.findRoleByCode(roleCode)
-          dto <- ZIO.succeed(UserDTO(user, Set(role)))
+            user <- userRepo.createUser(user)
+            optionRole <- userRepo.findRoleByCode(roleCode)
+            role <- ZIO.fromOption(optionRole) orElse userRepo.insertRole(Role(roleCode.code, roleCode.code.capitalize))
+            _ <- userRepo.insertRoleToUser(roleCode, user.typedId)
+            dto <- ZIO.succeed(UserDTO(user, Set(role)))
         } yield dto
-        
+
         def listUsersWithRole(roleCode: RoleCode): RIO[db.DataSource, List[UserDTO]] = for {
-          users <- userRepo.listUsersWithRole(roleCode)
           role <- userRepo.findRoleByCode(roleCode)
-          dto <- ZIO.succeed(
-            users.map(user => UserDTO(user, Set(role)))
-          )
+          users <- userRepo.listUsersWithRole(roleCode)
+          dto <- ZIO.succeed(users.map(user => UserDTO(user, Set(role.get))))
         } yield dto
-        
-        
+
+
     }
 
     val live: ZLayer[UserRepository.UserRepository, Nothing, UserService] =
-        ZLayer.fromServices[UserRepository.Service]((repo) => new Impl(repo))
+        ZLayer.fromService[UserRepository.Service, UserService.Service](repo => new Impl(repo))
 }
 
 case class UserDTO(user: User, roles: Set[Role])
